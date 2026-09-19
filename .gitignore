@@ -222,3 +222,7 @@ __marimo__/
 .idea/
 # 聊天记录(本地运行产物,含个人对话内容)
 01_LLM/chat_history.json
+02_agent/chat_history.json
+# Agent 运行时产出的测试文件
+02_agent/test.txt
+02_agent/todo.txt
