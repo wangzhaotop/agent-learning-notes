@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ===== 本仓库自定义 =====
+# PyCharm/JetBrains IDE 配置(含本机路径,不入库)
+.idea/
+# 聊天记录(本地运行产物,含个人对话内容)
+01_LLM/chat_history.json
