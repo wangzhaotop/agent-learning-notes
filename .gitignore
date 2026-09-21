@@ -226,3 +226,9 @@ __marimo__/
 # Agent 运行时产出的测试文件
 02_agent/test.txt
 02_agent/todo.txt
+03_rag/test.txt
+03_rag/todo.txt
+# RAG 向量缓存与运行产物(本地建库结果,含知识库内容)
+03_rag/vectors.json
+03_rag/chat_history.json
+03_rag/chroma_db/
