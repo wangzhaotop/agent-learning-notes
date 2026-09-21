@@ -55,14 +55,15 @@
 
 你现在的 Agent 是一个 300 行脚本。真项目里它要能加工具不改核心、能校验模型输出、能不花 token 就跑测试。这一阶段把阶段 2 的 Agent 重构成规范的 Python 项目——用的全是你在 Spring 里享受过的思想。
 
-课表预告:
+课表(手册已就绪:[04_engineering/学习手册.md](04_engineering/学习手册.md)):
 
 1. 项目拆分:`llm_client.py` / `tools.py` / `agent.py` / `main.py` 四模块
 2. **装饰器工具注册器**:`@tool` 注解 + `inspect` 反射,自动生成 JSON Schema、自动注册——Java 视角就是"注解 + 反射扫描"
-3. Pydantic 结构化输出 + 校验失败自动重试(Java:Jackson + Bean Validation)
-4. ReAct 提示词模式(Thought/Action/Observation),和 function calling 对比
-5. 流式 Agent:边想边说 + 工具执行卡片
-6. pytest 单测:mock 掉 LLM,0 token 跑测试
+3. RAG 工具化:阶段 3 的手写检索变成一个普通 `@tool`(懒加载 + 带来源返回)
+4. Pydantic 结构化输出 + 校验失败自动重试(Java:Jackson + Bean Validation)
+5. ReAct 提示词模式(Thought/Action/Observation),和 function calling 对比
+6. 流式 Agent:边想边说 + `[工具]` 卡片
+7. pytest 单测:mock 掉 LLM,0 token 跑测试
 
 ```python
 @tool
@@ -141,8 +142,8 @@ public String readFile(String path) { ... }
 
 - [x] 阶段 1 · 裸调 LLM API
 - [x] 阶段 2 · 手写 Agent(function calling)
-- [ ] 阶段 3 · RAG 与上下文工程 ← **你在这里**
-- [ ] 阶段 4 · Agent 工程化
+- [x] 阶段 3 · RAG 与上下文工程
+- [ ] 阶段 4 · Agent 工程化 ← **你在这里**
 - [ ] 阶段 5 · MCP 协议
 - [ ] 阶段 6 · 工作流与多 Agent
 - [ ] 阶段 7 · Java + Spring AI(含毕业项目)

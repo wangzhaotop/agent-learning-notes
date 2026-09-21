@@ -232,3 +232,5 @@ __marimo__/
 03_rag/vectors.json
 03_rag/chat_history.json
 03_rag/chroma_db/
+04_engineering/vectors.json
+04_engineering/chat_history.json
