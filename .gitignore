@@ -234,3 +234,5 @@ __marimo__/
 03_rag/chroma_db/
 04_engineering/vectors.json
 04_engineering/chat_history.json
+# 毕业考 10_final.py 的运行产物
+00_python基础/result.json
