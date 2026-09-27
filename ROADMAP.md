@@ -1,8 +1,8 @@
 # Agent 学习路线图
 
-> 给 Java 后端的 Agent 学习地图。你已完成阶段 1-2,本图规划阶段 3-7。
+> 给 Java 后端的 Agent 学习地图。你已完成阶段 1-4,本图规划阶段 5-7。
 > 用法:**每个新阶段开始前,让 ZCode 按本图生成该阶段的详细手册**(像 01/02 那样,目标/代码/自测/毕业考齐全),自己敲完找 ZCode 验收。
-> 阶段 3 的手册已经生成好:[03_rag/学习手册.md](03_rag/学习手册.md)。
+> 阶段 5 的手册已经生成好:[05_mcp/学习手册.md](05_mcp/学习手册.md)。
 
 ---
 
@@ -10,7 +10,9 @@
 
 - **阶段 1 ✅ 裸调 LLM API**:messages 协议、多轮对话、流式输出、历史窗口裁剪、会话存盘、JSON 结构化输出(毕业考 `06_my_chat.py` 已通过)
 - **阶段 2 ✅ 手写 Agent**:`tools` JSON Schema、`tool_calls` 点菜、`role=tool` 喂回、`名字→函数` 调度表、`MAX_STEPS` 防失控、完整 Agent 循环(毕业考 `03_my_agent.py` 已通过,5 个工具含 2 个自设计)
-- **环境现状**:本机全局 Python 3.10.6,`openai` / `python-dotenv` / `pydantic` / `numpy` 已装好,直接 `python 文件名.py` 即可;`.env` 统一放仓库根目录一份(`load_dotenv()` 会自动向上层找),模板已建好,填上 Key 就能用
+- **阶段 3 ✅ RAG 与上下文工程**:手写向量库、切块、引用来源、上下文裁剪、rerank(毕业考 `04_rag_agent.py` 已通过)
+- **阶段 4 ✅ Agent 工程化**:四模块拆分、`@tool` 装饰器注册器、RAG 工具化、Pydantic 结构化输出 + 重试、ReAct 对比、流式 Agent、pytest 0 token 单测(21 个用例全绿;毕业考 `/summary` 纪要卡待闭卷自测)
+- **环境现状**:conda 环境 `agent`(`D:\Anaconda3\envs\agent\python.exe`,Python 3.11),`openai` / `python-dotenv` / `pydantic` / `pytest` / `mcp` / `numpy` 已装好,直接 `python 文件名.py` 即可;`.env` 统一放仓库根目录一份(`load_dotenv()` 会自动向上层找),模板已建好,填上 Key 就能用
 
 ## 学习原则(承袭前两阶段,全程不变)
 
@@ -33,7 +35,7 @@
 
 ---
 
-## 阶段 3 · RAG 与上下文工程(手册已就绪,今天就能开始)
+## 阶段 3 · RAG 与上下文工程 ✅ 已毕业
 
 模型的知识停在训练那天,而且上下文窗口装不下你的全部资料。RAG(检索增强生成)的思路:**先从你的文档里检索出最相关的几段,塞进 prompt,再让模型回答**。同时正式解决阶段 2 毕业考留的进阶题——带工具调用的历史怎么裁。
 
@@ -51,7 +53,7 @@
 
 **注意**:DeepSeek 没有 embedding 接口,向量要走智谱(或 SiliconFlow),根目录 `.env` 里配两组变量——手册第 0 课有模板。
 
-## 阶段 4 · Agent 工程化:从脚本到项目
+## 阶段 4 · Agent 工程化:从脚本到项目 ✅ 已毕业
 
 你现在的 Agent 是一个 300 行脚本。真项目里它要能加工具不改核心、能校验模型输出、能不花 token 就跑测试。这一阶段把阶段 2 的 Agent 重构成规范的 Python 项目——用的全是你在 Spring 里享受过的思想。
 
@@ -143,7 +145,7 @@ public String readFile(String path) { ... }
 - [x] 阶段 1 · 裸调 LLM API
 - [x] 阶段 2 · 手写 Agent(function calling)
 - [x] 阶段 3 · RAG 与上下文工程
-- [ ] 阶段 4 · Agent 工程化 ← **你在这里**
-- [ ] 阶段 5 · MCP 协议
+- [x] 阶段 4 · Agent 工程化(7 课 + 21 个单测;毕业考 `/summary` 待闭卷)
+- [ ] 阶段 5 · MCP 协议 ← **你在这里**
 - [ ] 阶段 6 · 工作流与多 Agent
 - [ ] 阶段 7 · Java + Spring AI(含毕业项目)

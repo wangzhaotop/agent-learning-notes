@@ -20,7 +20,7 @@ def ask_structured(user_text,model_cls,retries=2):
 
     messages = [
         {"role":"system","content":system},
-        {"role":"system","content":user_text}
+        {"role":"user","content":user_text}
     ]
 
     for attempt in range(retries+1):

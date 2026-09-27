@@ -25,6 +25,54 @@ def chat(messages, tools=None, **kwargs):
     )
 
 
+def chat_stream(messages, tools=None):
+    """流式聊天: 边生成边打印;返回赞好的(content,tool_calls 列表)"""
+    stream = chat_client.chat.completions.create(
+        model=CHAT_MODEL,
+        messages=messages,
+        stream=True,
+        tools=tools
+    )
+    content_parts = []
+    tc_slots = {}  # index -> {"id","name","arguments"}:按碎片顺序攒
+
+    for chunk in stream:
+        if not chunk.choices:
+            continue
+        delta = chunk.choices[0].delta
+        if delta.content:
+            print(delta.content, end="", flush=True)
+            content_parts.append(delta.content)
+        for tc in (delta.tool_calls or []):
+            slot = tc_slots.setdefault(tc.index, {
+                "id": "",
+                "name": "",
+                "arguments": ""
+            })
+            if tc.id:
+                slot["id"] = tc.id
+            if tc.function and tc.function.name:
+                slot["name"] = tc.function.name
+            if tc.function and tc.function.arguments:
+                # 必须 += :arguments 是碎片,一段段补过来的,用 = 只剩最后一片
+                slot["arguments"] += tc.function.arguments
+
+    print()
+    # 回传给 API 的 tool_calls 必须带 function 包层,扁平结构会被判 400
+    tool_calls = [
+        {
+            "id": s["id"],
+            "type": "function",
+            "function": {
+                "name": s["name"],
+                "arguments": s["arguments"],
+            },
+        }
+        for _, s in sorted(tc_slots.items())
+    ]
+    return "".join(content_parts), tool_calls
+
+
 def embed_texts(texts, batch_size=32):
     """批量向量化,一次最多 32 条"""
     vectors = []
