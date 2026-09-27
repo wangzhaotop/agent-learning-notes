@@ -79,17 +79,21 @@ def read_file(path: str) -> str:
 
 ## 阶段 5 · MCP:工具的 USB-C
 
-你写的工具只有你的 Agent 能用。MCP(Model Context Protocol)把"工具"变成标准件:任何 MCP 客户端都能发现并调用你发布的工具。Java 后端看它就是熟悉的"标准化中间件/驱动"思维。
+你写的工具只有你的 Agent 能用。MCP(Model Context Protocol)把"工具"变成标准件:任何 MCP 客户端都能发现并调用你发布的工具。Java 后端看它就是熟悉的"标准化中间件/驱动"思维——**MCP 之于工具,就是 JDBC 之于数据库**。
 
-课表预告:
+课表(手册已就绪:[05_mcp/学习手册.md](05_mcp/学习手册.md),第 0-6 课 + 毕业考):
 
-1. 协议概览:host / client / server 三角色,tools / resources / prompts 三原语
-2. 用官方 SDK 手写 MCP server(stdio 传输):把阶段 2 的文件工具搬上去
-3. 手写 MCP client 接进你的 Agent:**动态发现工具,告别硬编码 `TOOL_IMPLS`**
-4. 把阶段 3 的 RAG 知识库发布成 MCP server
-5. 现成生态一览与安全边界(工具权限、prompt 注入)
+1. 第 0 课 概念 + 环境:host / client / server 三角色,tools / resources / prompts 三原语;**mcp 2.x 的 `MCPServer`(网上教程还是 1.x 的 `FastMCP`,照抄必挂)**
+2. 第 1 课 `file_server.py`:用官方 SDK 手写 MCP server(stdio 传输),把阶段 4 的文件工具搬进独立进程
+3. 第 2 课 `client.py`:手写 MCP client——握手 → `list_tools` 动态发现 → `call_tool`;`is_error` 是数据不是异常
+4. 第 3 课 `mcp_client.py` + `agent_main.py`:同步壳包异步(`MCPToolbox`)接进阶段 4 的 Agent,**注册表从"本文件扫描"变成"跨进程发现"**
+5. 第 4 课 resources 与 prompts:三原语的选型口诀 + 协议层的路径穿越防护
+6. 第 5 课 `rag_server.py`:把阶段 3 的知识库发布成 MCP server(检索与密钥全在服务端)
+7. 第 6 课 生态、传输(streamable-http)与安全边界:工具权限、prompt 注入、stdio 子进程的信任代价
 
-毕业考:你的 Agent 启动时通过 MCP 动态加载至少 3 个工具,一个都不在代码里硬编码。
+> ★ 本阶段最大的坑是**版本**:pip 装出来是 mcp 2.x,和网上 1.x 教程写法不同(`FastMCP` → `MCPServer`,属性改蛇形命名)。手册第 0 课列了对照表。
+
+毕业考:你的 Agent 启动时通过 MCP 动态加载至少 3 个工具,一个都不在代码里硬编码(注释掉任一 server,对应工具就该消失)。
 
 ## 阶段 6 · 工作流与多 Agent 编排
 

@@ -236,5 +236,9 @@ __marimo__/
 03_rag/chroma_db/
 04_engineering/vectors.json
 04_engineering/chat_history.json
+# 阶段 5:MCP 服务的向量缓存、会话与工具产物
+05_mcp/vectors.json
+05_mcp/chat_history.json
+05_mcp/test.txt
 # 毕业考 10_final.py 的运行产物
 00_python基础/result.json
