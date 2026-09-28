@@ -150,6 +150,6 @@ public String readFile(String path) { ... }
 - [x] 阶段 2 · 手写 Agent(function calling)
 - [x] 阶段 3 · RAG 与上下文工程
 - [x] 阶段 4 · Agent 工程化(7 课 + 21 个单测;毕业考 `/summary` 待闭卷)
-- [ ] 阶段 5 · MCP 协议 ← **你在这里**
-- [ ] 阶段 6 · 工作流与多 Agent
+- [x] 阶段 5 · MCP 协议
+- [ ] 阶段 6 · 工作流与多 Agent ← **你在这里**
 - [ ] 阶段 7 · Java + Spring AI(含毕业项目)
