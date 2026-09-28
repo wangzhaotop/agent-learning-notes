@@ -28,6 +28,17 @@ def read_file(path: str) -> str:
         return f.read()
 
 
+# 追加:resources 与prompts
+@server.resource("study://handbook")
+def handbook() -> str:
+    """学习手册目录速览"""
+    return "# 学习手册\n- 01_LLM\n- 02_agent\n- 03_rag\n- 04_engineering\n- 05_mcp"
+
+@server.prompt()
+def review(topic:str) -> str:
+    """生成一组复习提问"""
+    return f"请用3个问题考我:{topic},每题只答不问。"
+
 if __name__ == "__main__":
     # 日志一律走 stderr:stdout 是协议通道
     print("file-tools 已启动(stdio)", file=sys.stderr)

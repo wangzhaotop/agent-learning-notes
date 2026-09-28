@@ -13,9 +13,9 @@ SERVERS = {
     "file": StdioServerParameters(
         command=sys.executable, args=[os.path.join(HERE, "file_server.py")]
     ),
-    # "kb": StdioServerParameters(
-    #     command=sys.executable, args=[os.path.join(HERE, "rag_server.py")]
-    # ),
+    "kb": StdioServerParameters(
+        command=sys.executable, args=[os.path.join(HERE, "rag_server.py")]
+    ),
 }
 
 SYSTEM_PROMPT = (

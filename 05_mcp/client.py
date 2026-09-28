@@ -35,6 +35,17 @@ async def main():
             bad = await session.call_tool("no_such_tool", {})
             print(" is_error =", bad.is_error, "|", bad.content[0].text)
 
+            #===== 第 4 课追加:读 resource / 取 prompt =====
+            print("\n读 resource:")
+            res = await session.read_resource("study://handbook")
+            print(" ",res.contents[0].text)
+
+            print("\n prompt:")
+            p = await session.get_prompt("review",{"topic":"MCP"})
+            for msg in p.messages:
+                print(f" [{msg.role}] {msg.content.text}")
+
+
 
 if __name__ == '__main__':
     asyncio.run(main())
