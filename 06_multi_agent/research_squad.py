@@ -1,6 +1,5 @@
-"""把本阶段所以模式组合成系统"""
+"""把本阶段所有模式组合成系统"""
 
-import threading
 from concurrent.futures import ThreadPoolExecutor
 
 from pydantic import BaseModel, Field, ValidationError
@@ -20,7 +19,8 @@ RUBRIC = ("评审标准:1)第一句就给出明确结论;"
 
 class Verdict(BaseModel):
     passing: bool = Field(description="是否通过全部评审标准")
-    issues: str = Field(description="不通过时逐条列出问题;通过时为空数组")
+    issues: list[str] = Field(default_factory=list,
+                              description="不通过时逐条列出问题(每条要可照着改);通过时为空数组")
 
 
 class BudgetExceeded(Exception):
@@ -106,7 +106,7 @@ def forced_wrap_up(pairs, reviews, report=None, reason=""):
     lines += [f"[{s}] {r[:200]}" for s, r in pairs]
     if reviews:
         lines.append("【评审记录】")
-        lines += [f"第 {i} 轮:{'通过' if v.passing else v.issues}" for i, v in reviews]
+        lines += [f"第 {i} 轮:{'通过' if v.passing else '; '.join(v.issues)}" for i, v in reviews]
     return "\n".join(lines), reviews
 
 
@@ -118,15 +118,23 @@ def run(topic):
     subs = plan_with_retry(topic)
     print(f"主管拆出{len(subs)}个子任务:", *subs, sep="\n - ")
 
-    # 2.并行执行
+    # 2.并行执行:单个 worker 失败不炸全局;预算耗尽时保留已完成的材料
+    pairs = []
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
-        pairs = list(pool.map(worker_safe, subs))
+        futures = [pool.submit(worker_safe, sub) for sub in subs]
+        for fut in futures:          # 按子任务顺序收割,保证材料顺序稳定
+            try:
+                pairs.append(fut.result())
+            except BudgetExceeded:
+                break                # 预算在工人阶段就用光:剩余任务不再启动
+    if len(pairs) < len(subs):
+        return forced_wrap_up(pairs, reviews, reason="工人阶段预算耗尽")
 
     # 3.汇总
     try:
         report = synthesize(topic, pairs)
     except BudgetExceeded:
-        forced_wrap_up(pairs, reviews, reason="汇总阶段预算耗尽")
+        return forced_wrap_up(pairs, reviews, reason="汇总阶段预算耗尽")
 
     # 4.评审循环
     for round_i in range(1, MAX_EVAL_ROUNDS + 1):
@@ -153,4 +161,16 @@ def run(topic):
 
 if __name__ == '__main__':
     TOPIC = "评估公司班车制度的改进空间"
-    run(TOPIC)
+    report, reviews = run(TOPIC)
+
+    print("\n" + "=" * 60)
+    print("【最终报告】")
+    print(report)
+
+    print("\n【评审记录】")
+    for i, v in reviews:
+        print(f"第 {i} 轮:{'✅ 通过' if v.passing else '❌ 打回'}")
+        for issue in ([] if v.passing else v.issues):
+            print(f"  - {issue}")
+
+    print("\n" + llm_client.bill())
