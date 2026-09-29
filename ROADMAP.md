@@ -25,7 +25,7 @@
    ↓
 阶段 6：多 Agent 编排（链式、路由、并行、orchestrator）
    ↓
-阶段 7：生产化部署（FastAPI、Milvus、mem0、可观测）
+阶段 7：生产化部署 + 框架与约束（FastAPI、Milvus、mem0、LangChain、LangGraph、SKILLS、harness）
 ```
 
 ---
@@ -252,9 +252,12 @@
 
 ---
 
-## 阶段 7：生产化部署（2-3 周，核心阶段）
+## 阶段 7：生产化部署 + 框架与约束（3-4 周，核心阶段）
 
-**核心问题**：如何把 Agent 部署成生产服务？企业需要哪些额外能力？
+**核心问题**：如何把 Agent 部署成生产服务？企业需要哪些额外能力？框架替我做了什么，我该亲手加上哪些约束？
+
+> 本阶段分两篇：**第 0-7 课「生产化」**（服务化/向量库/记忆/可观测/评测）+ **第 8-12 课「框架与约束」**（LangChain / LangGraph / Agent SKILLS / harness）。
+> 第 8-12 课对照《Agent 开发完整学习路线》第 3、4 章（LangChain、LangGraph、SKILLS、mem0、harness、SDD、服务部署、Milvus）。
 
 ### 学习目标
 
@@ -265,8 +268,13 @@
 5. **LangSmith / Langfuse**：可观测（链路追踪、token 成本分析）
 6. **LLM-as-judge**：自动评测 Agent 质量
 7. **OpenAI Swarm / Claude SDK**：企业级 Agent 框架快速上手
+8. **LangChain 1.x**：提示词模板（Few-shot / 上下文占位符）、模型接入、输出解析；★ 本机实测 `with_structured_output` 在 DeepSeek 上会 400，必须知道替代写法
+9. **LangGraph 1.x**：状态图（State + reducer）、条件边、Checkpoint 持久化（`thread_id` / SqliteSaver）、Human-in-the-Loop（`interrupt` + `Command(resume)`）
+10. **Agent SKILLS**：`SKILL.md` 规范 + 渐进式披露（按需加载正文，实测省 78% 上下文）
+11. **harness 与 SDD**：工具白名单 / 超时 / Token 预算 / 输出规格校验 / 审计日志五道护栏；规格驱动开发
+12. **GraphRAG**：向量检索为什么答不了多跳问题，图怎么补
 
-### 课表（7 课 + 1 毕业考）
+### 课表（12 课 + 附录 + 1 毕业考）
 
 | 课次 | 文件 | 主题 | 时间 |
 |------|------|------|------|
@@ -278,9 +286,15 @@
 | 5 | `05_observability.py` | 可观测（LangSmith / Langfuse） | 60 分钟 |
 | 6 | `06_evaluation.py` | 评测（LLM-as-judge） | 90 分钟 |
 | 7 | `07_swarm_intro.py` | OpenAI Swarm 快速上手 | 60 分钟 |
-| 毕业 | `08_knowledge_service.py` | 企业知识库问答服务 | 180 分钟 |
+| 8 | `08_langchain_basics.py` | LangChain 1.x 基础（模板/模型/解析） | 90 分钟 |
+| 9 | `09_langchain_rag_memory.py` | LangChain RAG + 记忆 + GraphRAG 对照 | 120 分钟 |
+| 10 | `10_langgraph.py` | LangGraph：状态图 / Checkpoint / HITL | 150 分钟 |
+| 11 | `11_skills.py` + `skills/` | Agent SKILLS：渐进式披露 | 90 分钟 |
+| 12 | `12_harness.py` | harness 与 SDD：约束模型稳定运行 | 120 分钟 |
+| 附录 | — | 面试与简历（项目模板 + 20 道高频题） | 阅读 |
+| 毕业 | `graduation_knowledge_service.py` | 企业知识库问答服务 | 180 分钟 |
 
-### 毕业考要求（8 项全部达标）
+### 毕业考要求（10 项全部达标）
 
 闭卷手写一个**企业知识库问答服务**：
 
@@ -292,6 +306,8 @@
 6. **工具调用**：至少 2 个工具（知识库检索 + 其他）
 7. **错误处理**：Milvus 连接失败、LLM 超时，都有降级策略
 8. **评测**：写 5 个测试用例，LLM-as-judge 打分平均 >= 7/10
+9. **harness 约束**：白名单 + 超时 + Token 预算 + 输出规格校验 + 审计日志，未授权工具必须被拒
+10. **至少 1 个 SKILL**：`skills/<name>/SKILL.md`，模型按需加载并遵守规范
 
 ---
 
@@ -368,14 +384,19 @@ Agent 开发完整技能树（7 个阶段）
 ├─ 阶段 6：多 Agent 编排
 │  └─ 链式、路由、并行、orchestrator-workers
 │
-└─ 阶段 7：生产化部署（核心）
+└─ 阶段 7：生产化部署 + 框架与约束（核心）
    ├─ Instructor（结构化输出 + 自动重试）
    ├─ mem0（长期记忆管理）
    ├─ FastAPI（服务化 + SSE 流式）
    ├─ Milvus（生产级向量库）
    ├─ LangSmith / Langfuse（可观测）
    ├─ LLM-as-judge（自动评测）
-   └─ Swarm / Claude SDK（企业框架）
+   ├─ Swarm / Claude SDK（企业框架）
+   ├─ LangChain 1.x（模板 / 模型接入 / 输出解析）
+   ├─ LangGraph 1.x（状态图 / Checkpoint / Human-in-the-Loop）
+   ├─ Agent SKILLS（SKILL.md + 渐进式披露）
+   ├─ harness 五道护栏 + SDD 规格驱动
+   └─ GraphRAG 认知（向量检索的边界）
 ```
 
 ---
@@ -391,9 +412,9 @@ Agent 开发完整技能树（7 个阶段）
 | 4 | 1-2 周 | 7-8 周 | 代码工程化达标 |
 | 5 | 1 周 | 8-9 周 | 理解 MCP 协议 |
 | 6 | 1-2 周 | 10-11 周 | 掌握多 Agent 编排 |
-| 7 | 2-3 周 | **12-14 周** | **可面试 Agent 工程师** |
+| 7 | 3-4 周 | **13-15 周** | **可面试 Agent 工程师** |
 
-**每天投入 1-1.5 小时，3 个月完成全部 7 阶段。**
+**每天投入 1-1.5 小时，3-4 个月完成全部 7 阶段。**
 
 ---
 

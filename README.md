@@ -12,7 +12,7 @@
 4. **工程化**：装饰器注册、Pydantic 校验、单元测试、模块化设计
 5. **MCP 协议**：Model Context Protocol 实战，理解工具连接标准
 6. **多 Agent 编排**：链式、路由、并行、orchestrator-workers 四大模式
-7. **生产化部署**：Instructor 结构化输出、mem0 长期记忆、FastAPI 服务化、Milvus 向量库、可观测与评测
+7. **生产化 + 框架与约束**：Instructor 结构化输出、mem0 长期记忆、FastAPI 服务化、Milvus 向量库、可观测与评测；**LangChain / LangGraph / Agent SKILLS / harness 五道护栏 / SDD**
 
 ## 学习路线
 
@@ -25,7 +25,7 @@
 | 4 | `04_engineering/` | Agent 工程化 | 装饰器、Pydantic、pytest、模块化 | ✅ 已毕业 |
 | 5 | `05_mcp/` | MCP 协议 | MCP server/client、异步编程 | ✅ 已毕业 |
 | 6 | `06_multi_agent/` | 多 Agent 编排 | 链式/路由/并行/orchestrator | 🔄 进行中 |
-| 7 | `07_production/` | 生产化部署 | FastAPI、Milvus、mem0、可观测 | 📘 手册已就绪 |
+| 7 | `07_production/` | 生产化 + 框架与约束 | FastAPI、Milvus、mem0、LangChain、LangGraph、Agent SKILLS、harness | 📘 手册已就绪（12 课 + 附录 + 毕业考） |
 
 **学习特色**：
 - ✅ 每个阶段都有**完整学习手册**（目标 → 带注释代码 → 自测题 → 闭卷毕业考）
@@ -53,6 +53,9 @@ pip install mcp
 
 # 阶段 7 额外依赖
 pip install instructor mem0ai fastapi uvicorn sse-starlette pymilvus langsmith
+
+# 阶段 7 第 8-12 课（框架与约束篇）
+pip install langchain langchain-openai langgraph langchain-text-splitters langgraph-checkpoint-sqlite
 ```
 
 ### 配置 API Key
@@ -139,7 +142,7 @@ agent-learning-notes/
 │   ├── 03_parallel.py           # 并行（同时执行）
 │   └── 04_orchestrator.py       # orchestrator-workers
 │
-└── 07_production/               # 阶段 7：生产化部署
+└── 07_production/               # 阶段 7：生产化 + 框架与约束
     ├── 学习手册.md
     ├── 01_instructor.py         # Instructor 结构化输出
     ├── 02_mem0_memory.py        # mem0 长期记忆
@@ -148,7 +151,13 @@ agent-learning-notes/
     ├── 05_observability.py      # 可观测（LangSmith / Langfuse）
     ├── 06_evaluation.py         # 评测（LLM-as-judge）
     ├── 07_swarm_intro.py        # OpenAI Swarm 快速上手
-    └── 08_knowledge_service.py  # 毕业考：企业知识库问答服务
+    ├── 08_langchain_basics.py   # LangChain 1.x 基础（模板/模型/输出解析）
+    ├── 09_langchain_rag_memory.py  # LangChain RAG + 记忆 + GraphRAG 对照
+    ├── 10_langgraph.py          # LangGraph：状态图 / Checkpoint / HITL
+    ├── 11_skills.py             # Agent SKILLS（渐进式披露）
+    ├── skills/                  # SKILL.md 技能库（周报规范、代码评审规范）
+    ├── 12_harness.py            # harness 五道护栏 + SDD
+    └── graduation_knowledge_service.py  # 毕业考：企业知识库问答服务
 ```
 
 ## 技能树
@@ -173,6 +182,14 @@ agent-learning-notes/
 - ✅ **长期记忆**：mem0 跨会话记忆管理
 - ✅ **可观测**：LangSmith / Langfuse 链路追踪、token 成本分析
 - ✅ **自动评测**：LLM-as-judge 批量测试 Agent 质量
+
+### 框架与约束能力
+- ✅ **LangChain 1.x**：提示词模板（Few-shot / 上下文占位符）、模型接入、输出解析（含国产端点兼容坑）
+- ✅ **LangGraph 1.x**：状态图、条件边、Checkpoint 持久化（`thread_id` / SqliteSaver）、Human-in-the-Loop
+- ✅ **Agent SKILLS**：`SKILL.md` 规范 + 渐进式披露（按需加载，实测省 78% 上下文）
+- ✅ **harness 护栏**：工具白名单 / 超时 / Token 预算 / 输出规格校验 / 审计日志
+- ✅ **SDD**：规格驱动开发，把验收标准写成可执行校验
+- ✅ **GraphRAG 认知**：知道向量检索的边界在哪、什么时候该上图
 
 ## 常见问题
 
