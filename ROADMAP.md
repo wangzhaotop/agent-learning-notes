@@ -1,155 +1,433 @@
-# Agent 学习路线图
+# Agent 开发完整学习路线（Python 版）
 
-> 给 Java 后端的 Agent 学习地图。你已完成阶段 1-4,本图规划阶段 5-7。
-> 用法:**每个新阶段开始前,让 ZCode 按本图生成该阶段的详细手册**(像 01/02 那样,目标/代码/自测/毕业考齐全),自己敲完找 ZCode 验收。
-> 阶段 5 的手册已经生成好:[05_mcp/学习手册.md](05_mcp/学习手册.md)。
-
----
-
-## 你现在的位置
-
-- **阶段 1 ✅ 裸调 LLM API**:messages 协议、多轮对话、流式输出、历史窗口裁剪、会话存盘、JSON 结构化输出(毕业考 `06_my_chat.py` 已通过)
-- **阶段 2 ✅ 手写 Agent**:`tools` JSON Schema、`tool_calls` 点菜、`role=tool` 喂回、`名字→函数` 调度表、`MAX_STEPS` 防失控、完整 Agent 循环(毕业考 `03_my_agent.py` 已通过,5 个工具含 2 个自设计)
-- **阶段 3 ✅ RAG 与上下文工程**:手写向量库、切块、引用来源、上下文裁剪、rerank(毕业考 `04_rag_agent.py` 已通过)
-- **阶段 4 ✅ Agent 工程化**:四模块拆分、`@tool` 装饰器注册器、RAG 工具化、Pydantic 结构化输出 + 重试、ReAct 对比、流式 Agent、pytest 0 token 单测(21 个用例全绿;毕业考 `/summary` 纪要卡待闭卷自测)
-- **环境现状**:conda 环境 `agent`(`D:\Anaconda3\envs\agent\python.exe`,Python 3.11),`openai` / `python-dotenv` / `pydantic` / `pytest` / `mcp` / `numpy` 已装好,直接 `python 文件名.py` 即可;`.env` 统一放仓库根目录一份(`load_dotenv()` 会自动向上层找),模板已建好,填上 Key 就能用
-
-## 学习原则(承袭前两阶段,全程不变)
-
-1. **先手写后框架**:阶段 3-6 不用任何 Agent 框架,把框架的"黑盒"亲手拆一遍;阶段 7 才用 Spring AI,那时你会知道框架替你做了什么
-2. **Java 视角**:每个新概念都配 Java 类比(注解反射、中间件、Spring 容器……)
-3. **闭卷毕业考**:每阶段最后一课,不看手册从空文件重写,写完跑通才算毕业
-4. **卡住超 30 分钟**:代码 + 完整报错 + 你跑的原话,一起贴给 ZCode
-
-## 路线总览
-
-| 阶段 | 目录 | 主题 | 回答的核心问题 | 毕业标准 | 预估 |
-|---|---|---|---|---|---|
-| 3 | `03_rag/` | RAG 与上下文工程 | 怎么让 Agent "读过你的文档"?历史太长怎么裁? | 闭卷写出笔记问答 mini RAG | ~1.5 周 |
-| 4 | `04_engineering/` | Agent 工程化 | 脚本怎么变成能测试、能扩展的项目? | 装饰器注册工具 + 结构化输出 + 单测的模块化 Agent | ~2 周 |
-| 5 | `05_mcp/` | MCP 协议 | 工具怎么变成"任何 Agent 都能插"的标准件? | 手写 MCP server + 你的 Agent 动态发现工具 | ~1 周 |
-| 6 | `06_multi_agent/` | 工作流与多 Agent | 一个 Agent 什么都能干 = 什么都干不好,怎么编排? | 手写 router / orchestrator-workers / 反思循环 | ~1.5 周 |
-| 7 | `07_java_spring_ai/` | **Java 落地 · Spring AI** | 概念全通之后,回到你的生产栈 | Spring Boot 发布带 RAG + 工具调用的 Agent 服务 | ~3 周 |
-
-> 预估按"每晚 1-1.5 小时"算,总共 2-3 个月。快慢无所谓,**每阶段的毕业考必须闭卷**。
+> **学习周期**：2-3 个月（每天 1-1.5 小时）  
+> **目标人群**：有 Python 基础，想系统学习 AI Agent 开发的工程师  
+> **核心理念**：先手写后框架，从原理到生产，从单 Agent 到多 Agent
 
 ---
 
-## 阶段 3 · RAG 与上下文工程 ✅ 已毕业
+## 总览
 
-模型的知识停在训练那天,而且上下文窗口装不下你的全部资料。RAG(检索增强生成)的思路:**先从你的文档里检索出最相关的几段,塞进 prompt,再让模型回答**。同时正式解决阶段 2 毕业考留的进阶题——带工具调用的历史怎么裁。
+本路线图分为 **7 个阶段**，每个阶段都有完整的学习手册 + 带注释代码 + 自测题 + 闭卷毕业考。
 
-课表(8 课 + 毕业考,全部在 [03_rag/学习手册.md](03_rag/学习手册.md)):
-
-1. `00_embedding.py` — 文字变成向量(embedding API)
-2. `01_similarity.py` — 手写余弦相似度,纯 Python 排序
-3. `02_vector_store.py` — 60 行手写你的第一个"向量数据库"(含 JSON 持久化)
-4. `03_chunking.py` — 长文档切块:固定滑窗 vs 按标题切
-5. `04_rag_chat.py` — 整合:**能"读过你笔记"的聊天机器人**,回答带来源引用
-6. `05_context_trim.py` — 上下文工程:token 预算 + 按"完整轮次"裁剪 + 混合压缩
-7. `06_query_rewrite.py` — 检索优化第一招:先改写问题,再检索
-8. `07_rerank.py` — Rerank 精排:粗筛 top-10 → 打分重排 → top-3
-9. 毕业考 `08_my_rag_agent.py`(闭卷):把 RAG 做成 Agent 的一个工具(agentic RAG),模型自己决定查不查
-
-**注意**:DeepSeek 没有 embedding 接口,向量要走智谱(或 SiliconFlow),根目录 `.env` 里配两组变量——手册第 0 课有模板。
-
-## 阶段 4 · Agent 工程化:从脚本到项目 ✅ 已毕业
-
-你现在的 Agent 是一个 300 行脚本。真项目里它要能加工具不改核心、能校验模型输出、能不花 token 就跑测试。这一阶段把阶段 2 的 Agent 重构成规范的 Python 项目——用的全是你在 Spring 里享受过的思想。
-
-课表(手册已就绪:[04_engineering/学习手册.md](04_engineering/学习手册.md)):
-
-1. 项目拆分:`llm_client.py` / `tools.py` / `agent.py` / `main.py` 四模块
-2. **装饰器工具注册器**:`@tool` 注解 + `inspect` 反射,自动生成 JSON Schema、自动注册——Java 视角就是"注解 + 反射扫描"
-3. RAG 工具化:阶段 3 的手写检索变成一个普通 `@tool`(懒加载 + 带来源返回)
-4. Pydantic 结构化输出 + 校验失败自动重试(Java:Jackson + Bean Validation)
-5. ReAct 提示词模式(Thought/Action/Observation),和 function calling 对比
-6. 流式 Agent:边想边说 + `[工具]` 卡片
-7. pytest 单测:mock 掉 LLM,0 token 跑测试
-
-```python
-@tool
-def read_file(path: str) -> str:
-    """读取指定文件的全部文本内容"""
-    ...
-# 一行注解,Schema 和注册表自动生成——你写 Spring 时天天享受的就是这个
+```
+阶段 0：Python 基础补强（可选）
+   ↓
+阶段 1：裸调 LLM API（理解 messages、流式、JSON mode）
+   ↓
+阶段 2：手写 Agent（tool calling、ReAct 循环）
+   ↓
+阶段 3：RAG 与上下文工程（向量检索、切块、窗口管理）
+   ↓
+阶段 4：Agent 工程化（装饰器、Pydantic、单元测试）
+   ↓
+阶段 5：MCP 协议（Model Context Protocol 实战）
+   ↓
+阶段 6：多 Agent 编排（链式、路由、并行、orchestrator）
+   ↓
+阶段 7：生产化部署（FastAPI、Milvus、mem0、可观测）
 ```
 
-毕业考:闭卷把阶段 3 的毕业 Agent 重构成"装饰器注册 + Pydantic 输出 + pytest mock 单测"的四模块项目——agentic RAG 在阶段 3 毕业考已经体验过,本阶段专攻工程质量。
+---
 
-## 阶段 5 · MCP:工具的 USB-C
+## 阶段 0：Python 基础补强（可选，1 周）
 
-你写的工具只有你的 Agent 能用。MCP(Model Context Protocol)把"工具"变成标准件:任何 MCP 客户端都能发现并调用你发布的工具。Java 后端看它就是熟悉的"标准化中间件/驱动"思维——**MCP 之于工具,就是 JDBC 之于数据库**。
+**适合人群**：Python 基础薄弱，或对装饰器/迭代器/异步不熟悉的同学。
 
-课表(手册已就绪:[05_mcp/学习手册.md](05_mcp/学习手册.md),第 0-6 课 + 毕业考):
+### 学习内容
 
-1. 第 0 课 概念 + 环境:host / client / server 三角色,tools / resources / prompts 三原语;**mcp 2.x 的 `MCPServer`(网上教程还是 1.x 的 `FastMCP`,照抄必挂)**
-2. 第 1 课 `file_server.py`:用官方 SDK 手写 MCP server(stdio 传输),把阶段 4 的文件工具搬进独立进程
-3. 第 2 课 `client.py`:手写 MCP client——握手 → `list_tools` 动态发现 → `call_tool`;`is_error` 是数据不是异常
-4. 第 3 课 `mcp_client.py` + `agent_main.py`:同步壳包异步(`MCPToolbox`)接进阶段 4 的 Agent,**注册表从"本文件扫描"变成"跨进程发现"**
-5. 第 4 课 resources 与 prompts:三原语的选型口诀 + 协议层的路径穿越防护
-6. 第 5 课 `rag_server.py`:把阶段 3 的知识库发布成 MCP server(检索与密钥全在服务端)
-7. 第 6 课 生态、传输(streamable-http)与安全边界:工具权限、prompt 注入、stdio 子进程的信任代价
+1. **函数进阶**：位置参数、关键字参数、*args、**kwargs、返回值
+2. **容器操作**：列表推导、字典操作、集合去重
+3. **面向对象 OOP**：类定义、继承、`__init__`、`__str__`
+4. **高阶函数**：闭包、装饰器（阶段 4 会大量使用）
+5. **迭代器与生成器**：`yield`、`next()`、自定义迭代器
+6. **错误处理**：try/except、自定义异常
+7. **文件操作**：读写文件、with 上下文管理器
+8. **异步编程基础**：async/await（阶段 5 MCP 会用到）
 
-> ★ 本阶段最大的坑是**版本**:pip 装出来是 mcp 2.x,和网上 1.x 教程写法不同(`FastMCP` → `MCPServer`,属性改蛇形命名)。手册第 0 课列了对照表。
+### 毕业标准
 
-毕业考:你的 Agent 启动时通过 MCP 动态加载至少 3 个工具,一个都不在代码里硬编码(注释掉任一 server,对应工具就该消失)。
+- 能手写装饰器（如 `@timer` 计时装饰器）
+- 能手写生成器（如斐波那契数列生成器）
+- 理解异步的基本概念（能看懂 `async def` / `await`）
 
-## 阶段 6 · 工作流与多 Agent 编排
+### 资源推荐
 
-单 Agent 上下文越堆越长、工具越挂越乱。Anthropic《Building Effective Agents》里的五种模式全部手写落地:
+- 《Python Cookbook》第 7-9 章
+- Real Python 的 Decorators / Iterators / Async 系列文章
 
-1. 五模式图解:prompt chaining / routing / parallelization / orchestrator-workers / evaluator-optimizer
-2. 手写 **router**:按问题类型分发到不同"专家" Agent
-3. 手写 **orchestrator-workers**:主管拆任务 → worker 并行执行 → 汇总
-4. 手写 **evaluator-optimizer**:写代码 → 评审 → 改,循环到过关
-5. 成本与延迟账本:什么时候坚决不用多 Agent(大多数时候)
+---
 
-毕业考:手写一个"研究小队"(规划 → 并行搜集 → 汇总成报告)。
+## 阶段 1：裸调 LLM API（1 周）
 
-## 阶段 7 · 回主场:Java + Spring AI
+**核心问题**：不用任何框架，直接调用 LLM API，理解 messages 结构、流式输出、JSON mode。
 
-概念全通之后,回到你的生产栈。选型:**Spring AI 为主**(Spring 生态一脉、Spring Boot 3.x 无缝、官方支持 MCP),LangChain4j 为备选(风格更像 LangChain,课程里一课概览即可)。要求 JDK 17+。
+### 学习目标
 
-课表预告:
+1. 理解 LLM API 的 messages 结构（system / user / assistant）
+2. 掌握流式输出（`stream=True`），逐 token 打印
+3. 掌握 JSON mode（`response_format={"type": "json_object"}`）
+4. 理解 token 计费原理、temperature 参数
 
-1. 环境搭建 + 第一个 `ChatClient` 调用(对照阶段 1:概念一模一样)
-2. `@Tool` 工具调用:框架自动完成"点菜→反射执行→回传"——**就是你阶段 2 手写的 `agent_reply` + `run_tool_calls`**
-3. 结构化输出(entity 映射,对照你的 Pydantic 课)
-4. ChatMemory 与 Advisor(对照你的 messages 列表和窗口裁剪)
-5. RAG:`TokenTextSplitter` + `VectorStore`(SimpleVectorStore 起步 → **PGVector,你熟悉的 PostgreSQL 装个插件**)
-6. MCP client / server 的 Java 版(阶段 5 的概念直接复用)
-7. Spring Boot + SSE 把 Agent 发布成 HTTP 流式服务(Controller/Service,你的主场)
-8. 观测:日志 + actuator,进阶 Langfuse 链路追踪
+### 课表（4 课 + 1 毕业考）
 
-```java
-@Tool(description = "读取指定文件的全部文本内容")
-public String readFile(String path) { ... }
+| 课次 | 文件 | 主题 | 时间 |
+|------|------|------|------|
+| 1 | `01_simple_chat.py` | 单轮对话 | 30 分钟 |
+| 2 | `02_streaming.py` | 流式输出 | 30 分钟 |
+| 3 | `03_json_mode.py` | JSON 结构化输出 | 60 分钟 |
+| 毕业 | `04_graduation.py` | 多轮对话 + 历史管理 | 90 分钟 |
 
-// ChatClient 自动完成整个工具调用循环——阶段 2 你手写过的每一行都在里面
+### 毕业考要求
+
+闭卷手写一个**命令行聊天机器人**：
+- 支持多轮对话（保存历史 messages）
+- 支持流式输出（逐字打印）
+- 支持命令（`/clear` 清空历史、`/save` 保存对话、`/exit` 退出）
+- 历史记录持久化到本地文件（JSON 格式）
+
+---
+
+## 阶段 2：手写 Agent（1-2 周）
+
+**核心问题**：什么是 Agent？如何让 LLM 自己决定调用工具？ReAct 循环怎么实现？
+
+### 学习目标
+
+1. 理解 function calling / tool use 协议
+2. 手写 Agent 循环（while 循环 + tool_calls 判断）
+3. 理解 ReAct 模式（Reasoning + Acting）
+4. 实现多工具 Agent（给 Agent 3 个以上工具）
+
+### 课表（3 课 + 1 毕业考）
+
+| 课次 | 文件 | 主题 | 时间 |
+|------|------|------|------|
+| 1 | `01_function_calling.py` | function calling 基础 | 60 分钟 |
+| 2 | `02_simple_agent.py` | 手写 Agent 循环 | 90 分钟 |
+| 3 | `03_react_agent.py` | ReAct 模式 | 60 分钟 |
+| 毕业 | `04_graduation.py` | 多工具 Agent | 120 分钟 |
+
+### 毕业考要求
+
+闭卷手写一个**多工具 Agent**，至少包含 3 个工具：
+- `get_weather(city)`：查询天气
+- `search_web(query)`：搜索网络
+- `calculator(expression)`：计算器
+
+要求：
+- Agent 能根据用户问题自主选择调用哪个工具
+- 支持多步推理（如"北京明天下雨吗？"需要先查天气，再判断）
+- 打印完整的推理链路（Thought → Action → Observation）
+
+---
+
+## 阶段 3：RAG 与上下文工程（2 周）
+
+**核心问题**：如何让 Agent 读取外部知识？RAG 的完整流程是什么？上下文窗口满了怎么办？
+
+### 学习目标
+
+1. 理解 RAG 的离线流程（文档加载 → 切块 → 向量化 → 存储）
+2. 理解 RAG 的在线流程（用户提问 → 向量检索 → 拼接 prompt → LLM 回答）
+3. 掌握切块策略（按字符、按句子、重叠切块）
+4. 掌握上下文窗口管理（滑动窗口、摘要压缩）
+5. 手写一个简单的向量数据库（用 chromadb）
+
+### 课表（3 课 + 1 毕业考）
+
+| 课次 | 文件 | 主题 | 时间 |
+|------|------|------|------|
+| 1 | `01_simple_rag.py` | 简单 RAG | 90 分钟 |
+| 2 | `02_chunking.py` | 切块策略 | 60 分钟 |
+| 3 | `03_context_window.py` | 窗口管理 | 90 分钟 |
+| 毕业 | `04_rag_agent.py` | 完整 RAG Agent | 180 分钟 |
+
+### 毕业考要求
+
+闭卷手写一个**完整的 RAG Agent**：
+- 知识库：准备 5-10 份文档（你的工作文档 / 笔记 / 博客）
+- 离线处理：文档切块 → 向量化 → 存入 chromadb
+- 在线查询：用户提问 → 检索 top-3 相关文档 → 拼接 prompt → LLM 回答
+- 引用来源：回答时标注来自哪份文档（如"根据《Python 手册》第 3 章..."）
+
+要求：
+- 支持重新加载知识库（`/reload` 命令）
+- 支持调整检索参数（top-k、相似度阈值）
+- 打印检索到的文档片段（方便调试）
+
+---
+
+## 阶段 4：Agent 工程化（1-2 周）
+
+**核心问题**：如何让 Agent 代码更模块化、可测试、易扩展？
+
+### 学习目标
+
+1. 用装饰器实现工具注册器（`@tool` 装饰器）
+2. 用 Pydantic 校验工具参数和返回值
+3. 用 pytest 写单元测试（测试工具、Agent 推理链路）
+4. 模块化设计（tools.py、agent.py、llm_client.py、main.py）
+5. 错误处理与日志记录
+
+### 课表（7 课 + 21 个单测 + 1 毕业考）
+
+| 课次 | 文件 | 主题 | 时间 |
+|------|------|------|------|
+| 1-7 | 各模块 | 装饰器、Pydantic、单测 | 每课 60-90 分钟 |
+| 毕业 | `/summary` 命令 | 闭卷实现命令 | 120 分钟 |
+
+### 毕业考要求
+
+闭卷实现 `/summary` 命令，要求：
+- 分析当前对话历史，生成摘要
+- 用 Pydantic 定义摘要结构（主题、关键点、待办事项）
+- 写 3 个单元测试覆盖边界情况
+
+---
+
+## 阶段 5：MCP 协议（1 周）
+
+**核心问题**：什么是 MCP（Model Context Protocol）？如何自定义 MCP server？
+
+### 学习目标
+
+1. 理解 MCP 协议的设计理念（工具连接的标准化）
+2. 手写一个 MCP file server（文件读写工具）
+3. 手写一个 MCP RAG server（知识库检索工具）
+4. Agent 通过 MCP client 调用远程工具
+5. 异步编程补课（MCP 基于 asyncio）
+
+### 课表（5 课 + 1 毕业考）
+
+| 课次 | 文件 | 主题 | 时间 |
+|------|------|------|------|
+| 1 | `async_lab.py` | 异步编程补课 | 60 分钟 |
+| 2 | `file_server.py` | MCP file server | 90 分钟 |
+| 3 | `rag_server.py` | MCP RAG server | 90 分钟 |
+| 4 | `client.py` | MCP client | 60 分钟 |
+| 毕业 | `agent_main.py` | MCP Agent | 120 分钟 |
+
+### 毕业考要求
+
+闭卷手写一个**MCP Agent**，通过 MCP 调用本地 server 的工具：
+- 启动 2 个 MCP server（file + RAG）
+- Agent 能自动选择调用哪个 server 的工具
+- 支持跨 server 的多步推理（如"读取 data.txt，然后在知识库里搜索相关内容"）
+
+---
+
+## 阶段 6：多 Agent 编排（1-2 周）
+
+**核心问题**：多个 Agent 如何协作？四大编排模式是什么？
+
+### 学习目标
+
+1. **链式（Sequential）**：Agent A → Agent B → Agent C 顺序执行
+2. **路由（Router）**：根据问题类型，路由到不同的专家 Agent
+3. **并行（Parallel）**：多个 Agent 同时执行，汇总结果
+4. **orchestrator-workers**：主管 Agent 分配任务给工人 Agent
+
+### 课表（4 课 + 1 毕业考）
+
+| 课次 | 文件 | 主题 | 时间 |
+|------|------|------|------|
+| 1 | `01_chain.py` | 链式编排 | 60 分钟 |
+| 2 | `02_router.py` | 路由分发 | 90 分钟 |
+| 3 | `03_parallel.py` | 并行执行 | 90 分钟 |
+| 4 | `04_orchestrator.py` | orchestrator-workers | 120 分钟 |
+| 毕业 | 研究小队项目 | 闭卷多 Agent | 180 分钟 |
+
+### 毕业考要求
+
+闭卷手写一个**研究小队 Agent**：
+- **主管 Agent**：接收研究主题，规划子任务
+- **搜集 Agent**（3 个）：并行搜索不同来源（网络、知识库、学术数据库）
+- **汇总 Agent**：整合所有信息，生成研究报告
+
+要求：
+- 用 orchestrator-workers 模式
+- 主管能根据搜集结果动态调整计划
+- 最终输出 Markdown 格式的研究报告
+
+---
+
+## 阶段 7：生产化部署（2-3 周，核心阶段）
+
+**核心问题**：如何把 Agent 部署成生产服务？企业需要哪些额外能力？
+
+### 学习目标
+
+1. **Instructor**：结构化输出 + 自动重试（替代手动 JSON 解析）
+2. **mem0**：长期记忆管理（跨会话记住用户偏好）
+3. **FastAPI**：HTTP 服务化 + SSE 流式响应
+4. **Milvus**：生产级向量数据库（替代 chromadb）
+5. **LangSmith / Langfuse**：可观测（链路追踪、token 成本分析）
+6. **LLM-as-judge**：自动评测 Agent 质量
+7. **OpenAI Swarm / Claude SDK**：企业级 Agent 框架快速上手
+
+### 课表（7 课 + 1 毕业考）
+
+| 课次 | 文件 | 主题 | 时间 |
+|------|------|------|------|
+| 0 | `概念.md` | 生产化 vs Demo 的区别 | 30 分钟阅读 |
+| 1 | `01_instructor.py` | Instructor 结构化输出 | 60 分钟 |
+| 2 | `02_mem0_memory.py` | mem0 长期记忆 | 90 分钟 |
+| 3 | `03_fastapi_agent.py` | FastAPI 服务化 + SSE | 90 分钟 |
+| 4 | `04_milvus_rag.py` | Milvus 向量数据库 | 90 分钟 |
+| 5 | `05_observability.py` | 可观测（LangSmith / Langfuse） | 60 分钟 |
+| 6 | `06_evaluation.py` | 评测（LLM-as-judge） | 90 分钟 |
+| 7 | `07_swarm_intro.py` | OpenAI Swarm 快速上手 | 60 分钟 |
+| 毕业 | `08_knowledge_service.py` | 企业知识库问答服务 | 180 分钟 |
+
+### 毕业考要求（8 项全部达标）
+
+闭卷手写一个**企业知识库问答服务**：
+
+1. **FastAPI 服务**：提供 `/chat`（非流式）、`/chat/stream`（流式）、`/health` 接口
+2. **Milvus 向量库**：启动时从 `knowledge/` 文件夹加载文档
+3. **mem0 长期记忆**：记住用户偏好（如"我是 Python 开发者"）
+4. **Instructor 结构化输出**：返回 `{answer, confidence, sources}` 结构
+5. **可观测日志**：记录每次请求的 token、延迟、检索文档数
+6. **工具调用**：至少 2 个工具（知识库检索 + 其他）
+7. **错误处理**：Milvus 连接失败、LLM 超时，都有降级策略
+8. **评测**：写 5 个测试用例，LLM-as-judge 打分平均 >= 7/10
+
+---
+
+## 学习原则（贯穿全程）
+
+### 1. 先手写后框架
+
+- **阶段 1-3**：手写所有核心逻辑（Agent 循环、向量检索、上下文管理）
+- **阶段 4-7**：用成熟工具（Instructor、mem0、Milvus、FastAPI）
+- **收益**：框架会更新，但原理不会变；遇到问题能快速定位
+
+### 2. 闭卷毕业考
+
+- 每个阶段的毕业考必须**从空文件开始写**，不看之前的代码
+- 写完跑通才算毕业，否则重做
+- 卡住超 30 分钟立刻问（贴代码 + 报错 + 你的理解）
+
+### 3. 真实项目驱动
+
+- **阶段 3 毕业后**：做"个人笔记 RAG"（你的博客 / 工作文档）
+- **阶段 7 毕业后**：做"公司知识库问答"（改成你公司的真实需求）
+- **简历项目**：把毕业考项目改成完整的可部署服务
+
+---
+
+## 毕业后去哪
+
+完成全部 7 个阶段后，你具备了**企业 Agent 开发的完整技能栈**。
+
+### 下一步方向
+
+1. **LangGraph 深入**（可选）：
+   - 企业常用的复杂工作流框架（状态机 + 检查点 + Human-in-the-Loop）
+   - 推荐：LangGraph 官方教程 + 手写一个"审批工作流 Agent"
+
+2. **多模态 Agent**（前沿）：
+   - 图片理解（GPT-4V / Claude with vision）
+   - 语音输入输出（Whisper + TTS）
+   - 视频分析（帧提取 + 批量图片理解）
+
+3. **企业落地实战**（核心竞争力）：
+   - **成本优化**：小模型做路由/分类，大模型做关键决策
+   - **安全合规**：prompt injection 防御、敏感信息脱敏
+   - **A/B 测试**：对比不同 prompt / 模型的效果
+   - **用户反馈闭环**：收集点赞/点踩，用 Few-shot 优化
+
+4. **开源贡献**（简历加分）：
+   - 给 LangChain / mem0 / MCP 提 PR
+   - 发布你的 Agent 项目到 GitHub
+   - 写技术博客（3-5 篇深度文章）
+
+---
+
+## 技能树总结
+
+```
+Agent 开发完整技能树（7 个阶段）
+│
+├─ 阶段 1：裸调 LLM API
+│  └─ messages、流式、JSON mode、token 计费
+│
+├─ 阶段 2：手写 Agent
+│  └─ function calling、ReAct 循环、多工具编排
+│
+├─ 阶段 3：RAG 与上下文工程
+│  └─ 向量检索、切块、窗口管理、摘要压缩
+│
+├─ 阶段 4：工程化
+│  └─ 装饰器、Pydantic、pytest、模块化设计
+│
+├─ 阶段 5：MCP 协议
+│  └─ MCP server/client、异步编程、工具标准化
+│
+├─ 阶段 6：多 Agent 编排
+│  └─ 链式、路由、并行、orchestrator-workers
+│
+└─ 阶段 7：生产化部署（核心）
+   ├─ Instructor（结构化输出 + 自动重试）
+   ├─ mem0（长期记忆管理）
+   ├─ FastAPI（服务化 + SSE 流式）
+   ├─ Milvus（生产级向量库）
+   ├─ LangSmith / Langfuse（可观测）
+   ├─ LLM-as-judge（自动评测）
+   └─ Swarm / Claude SDK（企业框架）
 ```
 
-**毕业项目**:「企业知识库问答服务」——Spring Boot + Spring AI + PGVector + MCP 工具 + SSE 流式接口,一个能写进简历、能在公司落地的项目。
+---
 
-## 为什么这么排(针对你这个 Java 后端)
+## 时间规划建议
 
-1. **生态顺序**:Agent 领域的新概念几乎都先在 Python 生态出现,阶段 3-6 用最小成本建立概念(每个概念都标注 Java 对应物),阶段 7 一次性搬到 Java,学两遍 = 牢固一遍
-2. **工作场景全覆盖**:知识库问答(RAG)、工具调用、结构化输出,正是 Java 后端接 AI 需求最集中的三件事
-3. **协议思维是你的强项**:MCP 之于工具,就像 JDBC 之于数据库、SPI 之于插件——阶段 5 的理解会直接迁移到阶段 7 的 Spring AI MCP
+| 阶段 | 预估时间 | 累计时间 | 里程碑 |
+|------|---------|---------|--------|
+| 0 | 1 周（可选） | 1 周 | Python 基础达标 |
+| 1 | 1 周 | 2 周 | 能裸调 LLM API |
+| 2 | 1-2 周 | 3-4 周 | 手写 Agent 循环 |
+| 3 | 2 周 | 5-6 周 | 理解 RAG 完整流程 |
+| 4 | 1-2 周 | 7-8 周 | 代码工程化达标 |
+| 5 | 1 周 | 8-9 周 | 理解 MCP 协议 |
+| 6 | 1-2 周 | 10-11 周 | 掌握多 Agent 编排 |
+| 7 | 2-3 周 | **12-14 周** | **可面试 Agent 工程师** |
 
-## 毕业之后(生产化方向,按需再开)
+**每天投入 1-1.5 小时，3 个月完成全部 7 阶段。**
 
-- **评测**:建题库跑批 + LLM-as-judge(Agent 版的单元测试/回归测试)
-- **可观测**:全链路 trace(每次调用、每轮工具、token 花费)
-- **安全**:prompt 注入防护、工具最小权限、输出过滤
-- **多模态 / 微调**:什么时候真的需要(多数场景是"从来不需要")
+---
 
-## 进度追踪
+## 常见问题
 
-- [x] 阶段 1 · 裸调 LLM API
-- [x] 阶段 2 · 手写 Agent(function calling)
-- [x] 阶段 3 · RAG 与上下文工程
-- [x] 阶段 4 · Agent 工程化(7 课 + 21 个单测;毕业考 `/summary` 待闭卷)
-- [x] 阶段 5 · MCP 协议
-- [ ] 阶段 6 · 工作流与多 Agent ← **你在这里**
-- [ ] 阶段 7 · Java + Spring AI(含毕业项目)
+### 1. 必须按顺序学吗？
+
+**是的**。阶段 1-3 是地基（手写原理），跳过会导致后面似懂非懂。阶段 4-7 是在地基上盖房子。
+
+### 2. 学完能达到什么水平？
+
+- **入门级 Agent 工程师**：能独立开发完整的 Agent 项目
+- **简历项目**：有 2-3 个可部署的 Agent 服务（阶段 3、6、7 的毕业考）
+- **面试能力**：能讲清楚 Agent 原理、RAG 流程、多 Agent 编排、生产化部署
+
+### 3. 和培训班 / 训练营的区别？
+
+| 维度 | 培训班 | 本路线图 |
+|------|--------|---------|
+| 深度 | 浅（主要调库） | 深（手写原理 + 框架） |
+| 时间 | 1-2 个月速成 | 3 个月扎实 |
+| 成本 | 几千到几万元 | 免费 |
+| 项目 | 统一的 demo 项目 | 真实需求改造（你的笔记/公司文档） |
+
+### 4. 需要 GPU 吗？
+
+**不需要**。全程调用 API（DeepSeek / 智谱 / OpenAI），本地只跑推理逻辑。
+
+### 5. 推荐用哪个 LLM API？
+
+- **国内**：DeepSeek（便宜）、智谱 GLM（功能全）、Kimi（长文本）
+- **国外**：OpenAI（贵但稳定）、Claude（推理能力强）
+- **建议**：学习用 DeepSeek（成本低），生产用 GPT-4 / Claude（质量高）
+
+---
+
+**开始你的 Agent 开发之旅吧！** 从阶段 1 的 `01_LLM/学习手册.md` 开始 🚀
