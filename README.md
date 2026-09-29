@@ -12,7 +12,7 @@
 4. **工程化**：装饰器注册、Pydantic 校验、单元测试、模块化设计
 5. **MCP 协议**：Model Context Protocol 实战，理解工具连接标准
 6. **多 Agent 编排**：链式、路由、并行、orchestrator-workers 四大模式
-7. **生产化 + 框架与约束**：Instructor 结构化输出、mem0 长期记忆、FastAPI 服务化、Milvus 向量库、可观测与评测；**LangChain / LangGraph / Agent SKILLS / harness 五道护栏 / SDD**
+7. **框架与生产化(按 PDF 第 3-4 章顺序)**：LangChain 模板与模型接入、记忆管理、Native RAG、GraphRAG、Agent/Function Call、MCP 接进 Agent、Agent SKILLS、LangGraph、mem0、harness 五道护栏、DeepSeek Harness、Agent SDK 实操、SDD、Vibe Coding、FastAPI+SSE 部署、Milvus
 
 ## 学习路线
 
@@ -25,7 +25,7 @@
 | 4 | `04_engineering/` | Agent 工程化 | 装饰器、Pydantic、pytest、模块化 | ✅ 已毕业 |
 | 5 | `05_mcp/` | MCP 协议 | MCP server/client、异步编程 | ✅ 已毕业 |
 | 6 | `06_multi_agent/` | 多 Agent 编排 | 链式/路由/并行/orchestrator | 🔄 进行中 |
-| 7 | `07_production/` | 生产化 + 框架与约束 | FastAPI、Milvus、mem0、LangChain、LangGraph、Agent SKILLS、harness | 📘 手册已就绪（12 课 + 附录 + 毕业考） |
+| 7 | `07_production/` | 框架与生产化 | LangChain、LangGraph、SKILLS、Agent SDK、harness、FastAPI、Milvus | 📘 手册已就绪（16 课 + 附录 A-D + 毕业考,严格按 PDF 第 3-4 章顺序） |
 
 **学习特色**：
 - ✅ 每个阶段都有**完整学习手册**（目标 → 带注释代码 → 自测题 → 闭卷毕业考）
@@ -54,8 +54,11 @@ pip install mcp
 # 阶段 7 额外依赖
 pip install instructor mem0ai fastapi uvicorn sse-starlette pymilvus langsmith
 
-# 阶段 7 第 8-12 课（框架与约束篇）
+# 阶段 7 框架篇（第 1-8 课）
 pip install langchain langchain-openai langgraph langchain-text-splitters langgraph-checkpoint-sqlite
+
+# 阶段 7 进阶篇（第 12 课 Agent SDK,实测版本）
+pip install openai-agents claude-agent-sdk
 ```
 
 ### 配置 API Key
@@ -142,22 +145,26 @@ agent-learning-notes/
 │   ├── 03_parallel.py           # 并行（同时执行）
 │   └── 04_orchestrator.py       # orchestrator-workers
 │
-└── 07_production/               # 阶段 7：生产化 + 框架与约束
-    ├── 学习手册.md
-    ├── 01_instructor.py         # Instructor 结构化输出
-    ├── 02_mem0_memory.py        # mem0 长期记忆
-    ├── 03_fastapi_agent.py      # FastAPI 服务化 + SSE
-    ├── 04_milvus_rag.py         # Milvus 向量数据库
-    ├── 05_observability.py      # 可观测（LangSmith / Langfuse）
-    ├── 06_evaluation.py         # 评测（LLM-as-judge）
-    ├── 07_swarm_intro.py        # OpenAI Swarm 快速上手
-    ├── 08_langchain_basics.py   # LangChain 1.x 基础（模板/模型/输出解析）
-    ├── 09_langchain_rag_memory.py  # LangChain RAG + 记忆 + GraphRAG 对照
-    ├── 10_langgraph.py          # LangGraph：状态图 / Checkpoint / HITL
-    ├── 11_skills.py             # Agent SKILLS（渐进式披露）
-    ├── skills/                  # SKILL.md 技能库（周报规范、代码评审规范）
-    ├── 12_harness.py            # harness 五道护栏 + SDD
-    └── graduation_knowledge_service.py  # 毕业考：企业知识库问答服务
+└── 07_production/               # 阶段 7：框架与生产化(按 PDF 第 3-4 章顺序)
+    ├── 学习手册.md               # 16 课 + 附录 A-D + 毕业考 + PDF 条目对照表
+    ├── 01_langchain_basics.py    # PDF 3.a/3.b 模板 / 模型接入 / 输出解析
+    ├── 02_memory.py              # PDF 3.c 记忆管理(窗口 / 摘要 / 会话隔离)
+    ├── 03_native_rag.py          # PDF 3.d Native RAG
+    ├── 04_graphrag.py            # PDF 3.e GraphRAG 与多跳
+    ├── 05_agent_tools.py         # PDF 3.f/3.g Agent 与 Function Call
+    ├── 06_mcp_agent.py           # PDF 3.h MCP 接进 Agent
+    ├── 07_skills.py + skills/    # PDF 3.i Agent SKILLS
+    ├── 08_langgraph.py           # PDF 3.j LangGraph(状态图/Checkpoint/HITL)
+    ├── 09_mem0_memory.py         # PDF 4.1 mem0
+    ├── 10_harness.py             # PDF 4.2 harness 五道护栏
+    ├── 12_agent_sdk.py           # PDF 4.4 Agent SDK(Agents SDK / Claude Agent SDK)
+    ├── 13_sdd.py                 # PDF 4.5 SDD 规格驱动开发
+    ├── 15_fastapi_agent.py       # PDF 4.7 FastAPI + SSE 部署
+    ├── 16_milvus_rag.py          # PDF 4.8 Milvus
+    ├── appendix_a_instructor.py  # 附录 A 结构化输出
+    ├── appendix_b_observability.py  # 附录 B 可观测
+    ├── appendix_c_evaluation.py  # 附录 C 评测
+    └── graduation_knowledge_service.py  # 毕业考:企业知识库问答服务
 ```
 
 ## 技能树

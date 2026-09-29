@@ -25,7 +25,7 @@
    ↓
 阶段 6：多 Agent 编排（链式、路由、并行、orchestrator）
    ↓
-阶段 7：生产化部署 + 框架与约束（FastAPI、Milvus、mem0、LangChain、LangGraph、SKILLS、harness）
+阶段 7：框架与生产化（LangChain、LangGraph、SKILLS、Agent SDK、harness、FastAPI、Milvus）
 ```
 
 ---
@@ -227,16 +227,21 @@
 2. **路由（Router）**：根据问题类型，路由到不同的专家 Agent
 3. **并行（Parallel）**：多个 Agent 同时执行，汇总结果
 4. **orchestrator-workers**：主管 Agent 分配任务给工人 Agent
+5. **evaluator-optimizer**：评审循环,不通过带着意见重写
+6. **成本与延迟账本**：动手量一量"多 Agent 到底值不值"
 
-### 课表（4 课 + 1 毕业考）
+### 课表（第 0-6 课 + 1 毕业考）
 
 | 课次 | 文件 | 主题 | 时间 |
 |------|------|------|------|
-| 1 | `01_chain.py` | 链式编排 | 60 分钟 |
+| 0 | 概念 + 环境 | 工作流 vs Agent,五种模式 | 30 分钟 |
+| 1 | `01_chain.py` + `llm_client.py` | 链式编排 + 成本账本 | 60 分钟 |
 | 2 | `02_router.py` | 路由分发 | 90 分钟 |
 | 3 | `03_parallel.py` | 并行执行 | 90 分钟 |
-| 4 | `04_orchestrator.py` | orchestrator-workers | 120 分钟 |
-| 毕业 | 研究小队项目 | 闭卷多 Agent | 180 分钟 |
+| 4 | `04_orchestrator.py` + `orchestrator.py` | orchestrator-workers(逻辑抽成可复用模块) | 120 分钟 |
+| 5 | `05_evaluator.py` | evaluator-optimizer 评审循环 | 90 分钟 |
+| 6 | `06_cost.py` | 成本与延迟账本 | 60 分钟 |
+| 毕业 | `research_squad.py` | 研究小队(闭卷) | 180 分钟 |
 
 ### 毕业考要求
 
@@ -252,62 +257,79 @@
 
 ---
 
-## 阶段 7：生产化部署 + 框架与约束（3-4 周，核心阶段）
+## 阶段 7：框架与生产化(4-5 周,核心阶段)
 
-**核心问题**：如何把 Agent 部署成生产服务？企业需要哪些额外能力？框架替我做了什么，我该亲手加上哪些约束？
+**核心问题**：框架替我做了什么?企业要的 LangChain / LangGraph / Agent SDK / SKILLS 怎么落地?怎么让模型稳定运行?
 
-> 本阶段分两篇：**第 0-7 课「生产化」**（服务化/向量库/记忆/可观测/评测）+ **第 8-12 课「框架与约束」**（LangChain / LangGraph / Agent SKILLS / harness）。
-> 第 8-12 课对照《Agent 开发完整学习路线》第 3、4 章（LangChain、LangGraph、SKILLS、mem0、harness、SDD、服务部署、Milvus）。
+> 本阶段严格按《Agent 开发完整学习路线》的 Python 路径排列:
+> **上篇 = PDF 第 3 章「Agent 开发上手」(第 1-8 课,框架篇)**;**下篇 = PDF 第 4 章「Agent 开发进阶」(第 9-16 课)**;
+> 附录 A-C 是 PDF 未覆盖但上线/面试要用的(结构化输出、可观测、评测)。
+> 手册地址:[07_production/学习手册.md](07_production/学习手册.md)(含 PDF 条目对照表)
 
 ### 学习目标
 
-1. **Instructor**：结构化输出 + 自动重试（替代手动 JSON 解析）
-2. **mem0**：长期记忆管理（跨会话记住用户偏好）
-3. **FastAPI**：HTTP 服务化 + SSE 流式响应
-4. **Milvus**：生产级向量数据库（替代 chromadb）
-5. **LangSmith / Langfuse**：可观测（链路追踪、token 成本分析）
-6. **LLM-as-judge**：自动评测 Agent 质量
-7. **OpenAI Swarm / Claude SDK**：企业级 Agent 框架快速上手
-8. **LangChain 1.x**：提示词模板（Few-shot / 上下文占位符）、模型接入、输出解析；★ 本机实测 `with_structured_output` 在 DeepSeek 上会 400，必须知道替代写法
-9. **LangGraph 1.x**：状态图（State + reducer）、条件边、Checkpoint 持久化（`thread_id` / SqliteSaver）、Human-in-the-Loop（`interrupt` + `Command(resume)`）
-10. **Agent SKILLS**：`SKILL.md` 规范 + 渐进式披露（按需加载正文，实测省 78% 上下文）
-11. **harness 与 SDD**：工具白名单 / 超时 / Token 预算 / 输出规格校验 / 审计日志五道护栏；规格驱动开发
-12. **GraphRAG**：向量检索为什么答不了多跳问题，图怎么补
+**框架篇(PDF 第 3 章)**
+1. **LangChain 1.x**：提示词模板(Few-shot / 上下文占位符)、模型接入、输出解析；★ 实测 `with_structured_output` 在 DeepSeek 上会 400,要会用替代写法
+2. **记忆管理**：滑动窗口 / 长会话摘要 / `RunnableWithMessageHistory` 多会话隔离
+3. **Native RAG**：递归切块、`InMemoryVectorStore`、检索问答带来源(面试重点)
+4. **GraphRAG**：向量检索为什么答不了多跳,图怎么补
+5. **Agent 与 Function Call**：`create_agent` 全流程,以及框架**没**替你做的三件事
+6. **MCP 接进 Agent**：JSON Schema → Pydantic → BaseTool 适配层,复用阶段 5 的 `MCPToolbox`
+7. **Agent SKILLS**：`SKILL.md` + 渐进式披露(实测省 78% 上下文)
+8. **LangGraph 1.x**：状态图(State + reducer)、条件边、Checkpoint(`thread_id` / SqliteSaver)、Human-in-the-Loop
 
-### 课表（12 课 + 附录 + 1 毕业考）
+**进阶篇(PDF 第 4 章)**
+9. **mem0**：跨会话长期记忆
+10. **harness**：白名单 / 超时 / Token 预算 / 输出规格校验 / 审计日志五道护栏(逐条实测)
+11. **DeepSeek Harness**：harness 产品化的形态,以及面试话术
+12. **Agent SDK 实操**：OpenAI Agents SDK(实测跑在 DeepSeek 上,含 handoff 与原生 MCP)、Claude Agent SDK(含 Windows 上的真实限制)
+13. **SDD**：规格驱动开发,把验收标准写成可执行检查
+14. **Vibe Coding**：适用边界(边界 = 出错的代价)
+15. **Agent 服务部署**：FastAPI + SSE 流式 + Docker
+16. **Milvus**：生产级向量库
 
-| 课次 | 文件 | 主题 | 时间 |
-|------|------|------|------|
-| 0 | `概念.md` | 生产化 vs Demo 的区别 | 30 分钟阅读 |
-| 1 | `01_instructor.py` | Instructor 结构化输出 | 60 分钟 |
-| 2 | `02_mem0_memory.py` | mem0 长期记忆 | 90 分钟 |
-| 3 | `03_fastapi_agent.py` | FastAPI 服务化 + SSE | 90 分钟 |
-| 4 | `04_milvus_rag.py` | Milvus 向量数据库 | 90 分钟 |
-| 5 | `05_observability.py` | 可观测（LangSmith / Langfuse） | 60 分钟 |
-| 6 | `06_evaluation.py` | 评测（LLM-as-judge） | 90 分钟 |
-| 7 | `07_swarm_intro.py` | OpenAI Swarm 快速上手 | 60 分钟 |
-| 8 | `08_langchain_basics.py` | LangChain 1.x 基础（模板/模型/解析） | 90 分钟 |
-| 9 | `09_langchain_rag_memory.py` | LangChain RAG + 记忆 + GraphRAG 对照 | 120 分钟 |
-| 10 | `10_langgraph.py` | LangGraph：状态图 / Checkpoint / HITL | 150 分钟 |
-| 11 | `11_skills.py` + `skills/` | Agent SKILLS：渐进式披露 | 90 分钟 |
-| 12 | `12_harness.py` | harness 与 SDD：约束模型稳定运行 | 120 分钟 |
-| 附录 | — | 面试与简历（项目模板 + 20 道高频题） | 阅读 |
-| 毕业 | `graduation_knowledge_service.py` | 企业知识库问答服务 | 180 分钟 |
+**附录**:A 结构化输出(Instructor)、B 可观测(LangSmith / Langfuse)、C 评测(LLM-as-judge)、D 面试与简历
+
+### 课表（16 课 + 附录 A-D + 1 毕业考）
+
+| 课次 | 文件 | 主题 | PDF 对应 |
+|------|------|------|----------|
+| 1 | `01_langchain_basics.py` | 提示词模板 / 模型接入 / 输出解析 | 3.a 3.b |
+| 2 | `02_memory.py` | 记忆管理:窗口 / 摘要 / 会话隔离 | 3.c |
+| 3 | `03_native_rag.py` | Native RAG 项目 | 3.d |
+| 4 | `04_graphrag.py` | GraphRAG 与多跳 | 3.e |
+| 5 | `05_agent_tools.py` | Agent 与 Function Call 全流程 | 3.f 3.g |
+| 6 | `06_mcp_agent.py` | MCP 工具接进 Agent | 3.h |
+| 7 | `07_skills.py` + `skills/` | Agent SKILLS 渐进式披露 | 3.i |
+| 8 | `08_langgraph.py` | 状态图 / Checkpoint / HITL | 3.j |
+| 9 | `09_mem0_memory.py` | mem0 长期记忆 | 4.1 |
+| 10 | `10_harness.py` | harness 五道护栏 | 4.2 |
+| 11 | (概念课) | DeepSeek Harness | 4.3 |
+| 12 | `12_agent_sdk.py` | Agent SDK 实操(Swarm 继任者 + Claude Agent SDK) | 4.4 |
+| 13 | `13_sdd.py` | SDD 规格驱动开发 | 4.5 |
+| 14 | (概念课) | Vibe Coding 边界 | 4.6 |
+| 15 | `15_fastapi_agent.py` | FastAPI + SSE 部署 | 4.7 |
+| 16 | `16_milvus_rag.py` | Milvus 向量数据库 | 4.8 |
+| 附录 | `appendix_a/b/c_*.py` | 结构化输出 / 可观测 / 评测 | — |
+| 附录 D | — | 面试与简历 | 5、7 |
+| 毕业 | `graduation_knowledge_service.py` | 企业知识库问答服务 | 5 企业项目 |
 
 ### 毕业考要求（10 项全部达标）
 
 闭卷手写一个**企业知识库问答服务**：
 
-1. **FastAPI 服务**：提供 `/chat`（非流式）、`/chat/stream`（流式）、`/health` 接口
-2. **Milvus 向量库**：启动时从 `knowledge/` 文件夹加载文档
-3. **mem0 长期记忆**：记住用户偏好（如"我是 Python 开发者"）
-4. **Instructor 结构化输出**：返回 `{answer, confidence, sources}` 结构
-5. **可观测日志**：记录每次请求的 token、延迟、检索文档数
-6. **工具调用**：至少 2 个工具（知识库检索 + 其他）
-7. **错误处理**：Milvus 连接失败、LLM 超时，都有降级策略
-8. **评测**：写 5 个测试用例，LLM-as-judge 打分平均 >= 7/10
-9. **harness 约束**：白名单 + 超时 + Token 预算 + 输出规格校验 + 审计日志，未授权工具必须被拒
-10. **至少 1 个 SKILL**：`skills/<name>/SKILL.md`，模型按需加载并遵守规范
+1. **FastAPI 服务**：`/chat`、`/chat/stream`(SSE)、`/health`
+2. **向量库**：启动时从 `knowledge/` 加载文档并建库(Milvus 或第 3 课的 `InMemoryVectorStore`)
+3. **记忆**：会话记忆(第 2 课)或跨会话长期记忆(第 9 课)
+4. **结构化输出**：返回 `{answer, confidence, sources}`
+5. **可观测**：每次请求的 token、延迟、检索文档数
+6. **工具调用**：至少 2 个工具(知识库检索 + 其他)
+7. **错误处理**：向量库连不上、LLM 超时都有降级策略
+8. **评测**：5 个用例,LLM-as-judge 平均分 >= 7/10
+9. **harness 约束**：白名单 + 超时 + Token 预算 + 输出规格校验 + 审计日志
+10. **至少 1 个 SKILL**：`skills/<name>/SKILL.md`,模型按需加载并遵守规范
+
+> 加分项:用 LangGraph 改写编排(第 8 课),支持中断后人工审批再继续。
 
 ---
 
@@ -384,7 +406,7 @@ Agent 开发完整技能树（7 个阶段）
 ├─ 阶段 6：多 Agent 编排
 │  └─ 链式、路由、并行、orchestrator-workers
 │
-└─ 阶段 7：生产化部署 + 框架与约束（核心）
+└─ 阶段 7：框架与生产化（核心,PDF 3-4 章）
    ├─ Instructor（结构化输出 + 自动重试）
    ├─ mem0（长期记忆管理）
    ├─ FastAPI（服务化 + SSE 流式）
@@ -412,9 +434,9 @@ Agent 开发完整技能树（7 个阶段）
 | 4 | 1-2 周 | 7-8 周 | 代码工程化达标 |
 | 5 | 1 周 | 8-9 周 | 理解 MCP 协议 |
 | 6 | 1-2 周 | 10-11 周 | 掌握多 Agent 编排 |
-| 7 | 3-4 周 | **13-15 周** | **可面试 Agent 工程师** |
+| 7 | 4-5 周 | **14-16 周** | **可面试 Agent 工程师** |
 
-**每天投入 1-1.5 小时，3-4 个月完成全部 7 阶段。**
+**每天投入 1-1.5 小时，3.5-4 个月完成全部 7 阶段。**
 
 ---
 
