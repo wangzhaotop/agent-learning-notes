@@ -26,6 +26,7 @@
 | 5 | `05_mcp/` | MCP 协议 | MCP server/client、异步编程 | ✅ 已毕业 |
 | 6 | `06_multi_agent/` | 多 Agent 编排 | 链式/路由/并行/orchestrator | 🔄 进行中 |
 | 7 | `07_production/` | 框架与生产化 | LangChain、LangGraph、SKILLS、Agent SDK、harness、FastAPI、Milvus | 📘 手册已就绪（16 课 + 附录 A-D + 毕业考,严格按 PDF 第 3-4 章顺序） |
+| 二线 | `READING_PLAN.md` | **开源 Agent 源码学习手册** | nanobot 实测地图、5 个必读设计、5 周阅读计划、面试问题库 | 📘 手册已就绪（与阶段 7 并行，不串行） |
 
 **学习特色**：
 - ✅ 每个阶段都有**完整学习手册**（目标 → 带注释代码 → 自测题 → 闭卷毕业考）
